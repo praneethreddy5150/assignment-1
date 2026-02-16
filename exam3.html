@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pagination + Sorting</title>
+
+    <style>
+        table {
+            border-collapse: collapse;
+            table-layout: fixed;
+        }
+
+        th,
+        td {
+            border: 1px solid black;
+            cursor: pointer;
+        }
+
+        tr {
+            height: 300px;
+        }
+
+        .longdisc {
+            max-height: 300px;
+            overflow-y: auto;
+            display: block;
+            width: 300px;
+        }
+
+        #table .thumbnail {
+            max-width: 200px;
+            overflow-x: scroll;
+        }
+
+        th:hover {
+            background-color: #ddd;
+        }
+    </style>
+</head>
+
+<body>
+
+    <table id="table">
+        <thead>
+            <tr>
+                <th data-key="title">title</th>
+                <th data-key="isbn">isbn</th>
+                <th data-key="pageCount">pageCount</th>
+                <th data-key="publishedDate">publishedDate</th>
+                <th data-key="thumbnailUrl">thumbnailUrl</th>
+                <th data-key="shortDescription">shortDescription</th>
+                <th data-key="longDescription">longDescription</th>
+                <th data-key="status">status</th>
+                <th data-key="authors">authors</th>
+                <th data-key="categories">categories</th>
+                <th data-key="price">price</th>
+                <th data-key="currency">currency</th>
+                <th data-key="discount">discount</th>
+                <th data-key="discountUnits">discountUnits</th>
+            </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+    </table>
+
+    <button id="next">Next</button>
+
+    <script type="module">
+        import { books } from "./data.js";
+
+        let rowsperpage = 10;
+        let currentpage = 1;
+        let sortDirection = 1;
+
+        const tbody = document.getElementById("tbody");
+        const nextBtn = document.getElementById("next");
+
+        function rendertable() {
+
+            tbody.innerHTML = "";
+
+            const start = (currentpage - 1) * rowsperpage;
+            const end = start + rowsperpage;
+
+            const pagedata = books.slice(start, end);
+
+            for (let i = 0; i < pagedata.length; i++) {
+
+                const book = pagedata[i];
+
+                const ntr = document.createElement("tr");
+
+                ntr.innerHTML = `
+            <td>${book.title ?? ""}</td>
+            <td>${book.isbn ?? ""}</td>
+            <td>${book.pageCount ?? ""}</td>
+            <td>${book.publishedDate ?? ""}</td>
+            <td class="thumbnail">${book.thumbnailUrl ?? ""}</td>
+            <td>${book.shortDescription ?? ""}</td>
+            <td class="longdisc">${book.longDescription ?? ""}</td>
+            <td>${book.status ?? ""}</td>
+            <td>${book.authors ?? ""}</td>
+            <td>${book.categories ?? ""}</td>
+            <td>${book.price ?? ""}</td>
+            <td>${book.currency ?? ""}</td>
+            <td>${book.discount ?? ""}</td>
+            <td>${book.discountUnits ?? ""}</td>
+        `;
+
+                tbody.appendChild(ntr);
+            }
+        }
+
+        function nextrows() {
+            if (currentpage * rowsperpage < books.length) {
+                currentpage++;
+                rendertable();
+            }
+        }
+
+        nextBtn.addEventListener("click", nextrows);
+
+        document.querySelectorAll("th").forEach(header => {
+
+            header.addEventListener("click", () => {
+
+                const key = header.dataset.key;
+
+                books.sort((a, b) => {
+
+                    let valA = a[key] ?? "";
+                    let valB = b[key] ?? "";
+                    if (!isNaN(valA) && !isNaN(valB)) {
+                        return (Number(valA) - Number(valB)) * sortDirection;
+                    }
+                    return valA.toString().localeCompare(valB.toString()) * sortDirection;
+                });
+
+                sortDirection *= -1;
+                currentpage = 1;
+                rendertable();
+            });
+
+        });
+
+        rendertable();
+
+    </script>
+
+</body>
+
+</html>
